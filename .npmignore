@@ -1,0 +1,9 @@
+.nyc_output/
+coverage/
+node_modules/
+src/
+test/
+.idea/
+.babelrc
+.eslintrc.json
+.vscode

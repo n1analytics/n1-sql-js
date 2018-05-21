@@ -1,0 +1,154 @@
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="shortcut icon" type="image/ico" href="http://blog.n1analytics.com/assets/images/favicon.ico">
+
+    <title>N1 SQL Demo</title>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <style>
+      body {
+        padding-top: 5rem;
+      }
+    </style>
+  </head>
+
+  <body class="bg-light">
+
+    <div class="container">
+      <div class="text-center">
+        <h2>N1 SQL Tester</h2>
+        <p class="lead">Select a query and press the 'Run' button. The result should appear in the
+          'Result' section in due time. Please be patient, doing things confidential takes time.
+      </div>
+
+      <div class="row">
+        <div class="col-md-12">
+          <h5 class="mb-3">Query</h5>
+          <div class="row">
+            <div class="col-md-8 mb-3">
+              <select class="custom-select d-block w-100" id="sample" required>
+                <option value="-1">Choose...</option>
+              </select>
+              <div class="invalid-feedback">
+                Please select a valid country.
+              </div>
+            </div>
+            <div class="col-md-4 mb-3">
+              <button class="btn btn-primary btn-md btn-block" type="submit" id="run" disabled >Run</button>
+            </div>
+          </div>
+          <hr class="mb-3" />
+          <h5 class="mb-3">Results</h5>
+          <table class="table" id="results">
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bootstrap core JavaScript -->
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script>window.jQuery || document.write('<script src="../../../../assets/js/vendor/jquery-slim.min.js"><\/script>')</script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>    
+
+    <script src="../dist/n1-sql.js"></script>
+    <script>
+      var base = N1Sql('http://localhost:9000')
+        .vdbs('mock-20')
+        .useTable('dp1', 'orgA.t')
+        .useTable('dp2', 'orgB.t')
+        .join(c => c.column('dp1.id').eq().column('dp2.id'));
+
+      var samples = [
+        {l: "SUM(spend > 2000)", f: function() {
+          base
+          .selectSum('dp2.spend', 'spend')
+          .where(c => c.column('dp1.spend').gt(2000))
+          .exec().then(j => {
+            showResult(j.rows);
+          });
+        }},
+        {l: "spend > 1000 by gender", f: function() {
+          base.select('dp1.gender', 'gender')
+          .selectSum('dp2.spend', 'spend')
+          .selectCount('cnt')
+          .groupBy('dp1.gender')
+          .where(c => c.column('dp1.spend').gt(1000))
+          .exec().then(j => {
+            var rows = j.rows;
+            console.info(j.rows);
+            showResult(rows);
+          });
+        }},
+        // {l: "two"},
+        // {l: "three"},
+      ];
+
+      function clearResult() {
+        var tbl = $('#results');
+        tbl.empty();
+      }
+
+      function showResult(rows) {
+        var tbl = $('#results');
+        tbl.empty();
+        if (rows.length === 0) {
+          alert("Empty results");
+        }
+        // headers
+        var keys = Object.keys(rows[0]);
+        var th = $('<thead>');
+        var hr = $('<tr>');
+        th.append(hr);
+        keys.forEach(function(k) {
+          hr.append('<th scope="col">' + k + '</td>');
+        })
+        tbl.append(th);
+
+        // rows
+        var tb = $('<tbody>');
+        rows.forEach(function(r) {
+          var tr = $('<tr>');
+          keys.forEach(function(k) {
+            tr.append('<td>' + r[k] + '</td>');
+          });
+          tb.append(tr);
+        });
+        tbl.append(tb);
+      }
+
+      $(document).ready(function() {
+        var o = $("#sample");
+        var i;
+        for (i = 0; i < samples.length; i++) {
+          var s = samples[i];
+          var c = {text: s.l, value: i};
+          o.append($("<option>" , c));
+        }
+      });
+      $("#run").click(function() {
+        clearResult();
+        var v = Number($("#sample").val());
+        var s = samples[v];
+        s.f();
+      });
+      $("#sample").change(function() {
+        var v = Number($(this).val());
+        $("#run").prop("disabled", v < 0);
+        return;
+      });
+
+      // showResult([
+      //   {gender: "F", cnt: 7, spend: 14590},
+      //   {gender: "M", cnt: 4, spend: 6486}
+      // ]);
+    </script>
+
+  </body>
+</html>

@@ -1,0 +1,51 @@
+{
+  "name": "n1-sql",
+  "version": "0.1.6",
+  "main": "lib/index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/n1analytics/n1-sql-js.git"
+  },
+  "keywords": [
+    "n1analytics",
+    "sql",
+    "privacy-preserving"
+  ],
+  "author": "Max Ott",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/n1analytics/n1-sql-js/issues"
+  },
+  "homepage": "https://github.com/n1analytics/n1-sql-js#readme",
+  "dependencies": {
+    "fetch-ponyfill": "^6.0.2",
+    "immutable": "~3.8.2"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-plugin-istanbul": "^4.1.6",
+    "babel-preset-env": "^1.7.0",
+    "babel-eslint": "~7.2.3",
+    "browserify": "~16.2.2",
+    "eslint": "^4.19.1",
+    "eslint-config-airbnb-base": "^12.1.0",
+    "eslint-plugin-import": "^2.12.0",
+    "mocha": "^4.0.1",
+    "nyc": "^11.3.0"
+  },
+  "scripts": {
+    "build": "babel ./src -d ./lib",
+    "dist": "npm run build; mkdir -p dist; browserify lib/index.js --standalone N1Sql -o dist/n1-sql.js",
+    "dist-version": "npm run build; mkdir -p dist; browserify build/index.js -o dist/n1-sql.$npm_package_version.js",
+    "lint": "eslint ./src",
+    "test": "nyc mocha --require babel-core/register",
+    "prepublishOnly": "npm run build; npm run dist",
+    "debug": "node --nolazy --inspect-brk=9229 example/simple.js"
+  },
+  "nyc": {
+    "reporter": [
+      "lcov",
+      "text"
+    ]
+  }
+}

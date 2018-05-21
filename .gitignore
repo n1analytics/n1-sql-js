@@ -1,0 +1,10 @@
+package-lock.json
+.nyc_output/
+coverage/
+node_modules/
+lib/
+test/
+.idea/
+.babelrc
+.eslintrc.json
+.vscode
